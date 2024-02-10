@@ -1,22 +1,33 @@
 import * as React from 'react';
 import { IProcedure } from '../../interfaces/procedure.type';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Card, Avatar, Title, Caption, IconButton, Text, ProgressBar, Portal, Modal, Button, RadioButton, Icon } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Card, Caption,  Text, ProgressBar, Portal, Modal, Button, Icon } from 'react-native-paper';
 import { Formik } from 'formik';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { execute } from '../../service/api-service';
+import { StackNavigationProp } from '@react-navigation/stack';
+import SelectDropdown from 'react-native-select-dropdown';
 
 interface formData {
     help: string;
     execution: string;
 }
 
+export type RootStackParamList = {
+    Event: {
+        id: string,
+        refresh: boolean,
+    } | undefined;
+};
+
 export const Procedure: React.FC = () => {
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+
     const route = useRoute();
     const { schedule_id } = route.params as { schedule_id: string };
     const { procedure_id } = route.params as { procedure_id: string };
     const { tryNumber } = route.params as { tryNumber: number };
     const { tries } = route.params as { tries: number };
-    const { progress } = route.params as { progress: number };
     const { procedure } = route.params as { procedure: IProcedure };
 
     const [visible, setVisible] = React.useState(false);
@@ -28,14 +39,22 @@ export const Procedure: React.FC = () => {
     const showModal = () => setVisible(true);
     const hideModal = () => setVisible(false);
 
+    const typeHelp = [
+        'INDEPENDENTE',
+        'POSICIONAL',
+        'GESTUAL',
+        'VERBAL',
+        'FÍSICA',
+        'VISUAL',
+      ];
+
     const payload = (data: formData, time: number) => {
         return {
             schedule_id: schedule_id,
             procedure_id: procedure_id,
             trie: tryNumber,
             time: new Date(time * 1000).toISOString().slice(11, 19),
-            help: data.help,
-            success: data.execution === 'yes' ? true : false
+            help_type: data.help,
         }
     }
 
@@ -61,9 +80,19 @@ export const Procedure: React.FC = () => {
         }
     };
 
-    const handleSubmit = (values: any) => {
+    const handleSubmit = async (values: any) => {
         const data = payload(values, time)
         console.log(data);
+        try {
+            const call = await execute(data);
+            if (call.id) {
+                navigation.navigate('Event', { id: schedule_id, refresh: true })
+            }
+
+        } catch (error) {
+            console.error('Erro no envio do dados:', error);
+            Alert.alert('Erro', 'Falha ao salvar. Por favor, tente novamente.');
+        }
     };
 
     return (
@@ -71,7 +100,7 @@ export const Procedure: React.FC = () => {
             <Portal>
                 <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
                     <Formik
-                        initialValues={{ help: 'DEPENDENTE', execution: 'yes' }}
+                        initialValues={{ help: 'INDEPENDENTE', execution: 'yes' }}
                         onSubmit={handleSubmit}
                     >
                         {({ values, handleChange, handleSubmit }) => (
@@ -98,59 +127,44 @@ export const Procedure: React.FC = () => {
                                 <View style={styles.formContainer}>
                                     <Text>Tipo de Ajuda:</Text>
                                 </View>
-                                <View style={styles.buttonContainer}>
-                                    <Button
-                                        mode="outlined"
-                                        rippleColor="#D8727D"
-                                        textColor={values.help === 'DEPENDENTE' ? 'white' : '#D8727D'}
-                                        onPress={() => handleChange('help')('DEPENDENTE')}
-                                        buttonColor={values.help === 'DEPENDENTE' ? '#D8727D' : 'white'}
-                                    >
-                                        Dependente
-                                    </Button>
-                                    <Button
-                                        mode="outlined"
-                                        rippleColor="#D8727D"
-                                        textColor={values.help === 'INDEPENDENTE' ? 'white' : '#D8727D'}
-                                        onPress={() => handleChange('help')('INDEPENDENTE')}
-                                        buttonColor={values.help === 'INDEPENDENTE' ? '#D8727D' : 'white'}
-                                    >
-                                        Independente
-                                    </Button>
+                                <View>
+                                    <SelectDropdown
+                                        data={typeHelp}
+                                        onSelect={(selectedItem) => {
+                                            handleChange('help')(selectedItem)
+                                        }}
+                                        defaultValue={'INDEPENDENTE'}
+                                        defaultButtonText={'Selecione...'}
+                                        buttonTextAfterSelection={(selectedItem, index) => {
+                                            return selectedItem;
+                                        }}
+                                        rowTextForSelection={(item, index) => {
+                                            return item;
+                                        }}
+                                        buttonStyle={styles.dropdown1BtnStyle}
+                                        buttonTextStyle={styles.dropdown1BtnTxtStyle}
+                                        renderDropdownIcon={isOpened => {
+                                            return <Icon source={isOpened ? 'chevron-up' : 'chevron-down'} color={'#444'} size={18} />;
+                                        }}
+                                        dropdownIconPosition={'right'}
+                                        dropdownStyle={styles.dropdown1DropdownStyle}
+                                        rowStyle={styles.dropdown1RowStyle}
+                                        rowTextStyle={styles.dropdown1RowTxtStyle}>
+                                    </SelectDropdown>
                                 </View>
                                 <View style={styles.formContainer}>
                                     <Text>Executado:</Text>
-                                </View>
-                                <View style={styles.buttonContainer}>
-                                    <Button
-                                        mode="outlined"
-                                        onPress={() => handleChange('execution')('no')}
-                                        buttonColor={values.execution === 'no' ? '#9cb39a' : 'white'}
-                                        textColor={values.execution === 'no' ? 'white' : '#9cb39a'}
-                                        icon="close-circle-outline"
-                                    >
-                                        Não
-                                    </Button>
-                                    <Button
-                                        mode="outlined"
-                                        onPress={() => handleChange('execution')('yes')}
-                                        buttonColor={values.execution === 'yes' ? '#9cb39a' : 'white'}
-                                        textColor={values.execution === 'yes' ? 'white' : '#9cb39a'}
-                                        icon="check-circle-outline"
-                                    >
-                                        Sim
-                                    </Button>
                                 </View>
                                 <View>
                                     <Text>Após finalizar, selecione o tipo de ajuda e execução.</Text>
                                 </View>
                                 <View style={styles.buttons}>
-                                    <Button icon="content-save" mode="contained" onPress={handleSubmit} buttonColor='#46913d'>
+                                    <Button icon="content-save" mode="contained" onPress={handleSubmit} buttonColor='#06ca8f'>
                                         Salvar
                                     </Button>
                                 </View>
                                 <View style={styles.buttons}>
-                                    <Button icon="close" mode="contained" onPress={hideModal} buttonColor='#dfdfeb'>
+                                    <Button icon="close" mode="contained" onPress={hideModal} buttonColor='#cecbcb'>
                                         Cancelar
                                     </Button>
                                 </View>
@@ -177,12 +191,12 @@ export const Procedure: React.FC = () => {
             <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
                     <View style={styles.userInfo}>
-                        <ProgressBar progress={progress} color="#068798" />
+                        <ProgressBar progress={procedure.data_chart} color="#068798" />
                         <Caption style={styles.caption}>{`Tentativa:` + tryNumber + '/' + tries}</Caption>
                     </View>
                     <Button
                         icon="play-outline"
-                        mode="outlined"
+                        mode="elevated"
                         textColor="#D8727D"
                         onPress={showModal}
                         buttonColor="white"
@@ -291,11 +305,21 @@ const styles = StyleSheet.create({
         padding: 5,
         justifyContent: 'space-between',
     },
-    caption : {
+    caption: {
         color: '#717180'
     },
-
-
+    dropdown1BtnStyle: {
+        width: '80%',
+        height: 40,
+        backgroundColor: '#FFF',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#444',
+    },
+    dropdown1BtnTxtStyle: { color: '#444', textAlign: 'left', fontSize: 16 },
+    dropdown1DropdownStyle: {backgroundColor: '#EFEFEF'},
+    dropdown1RowStyle: {backgroundColor: '#EFEFEF', borderBottomColor: '#C5C5C5'},
+    dropdown1RowTxtStyle: {color: '#444', textAlign: 'left'},
 });
 
 const formatTime = (seconds: number): string => {

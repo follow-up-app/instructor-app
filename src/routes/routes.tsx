@@ -1,6 +1,6 @@
 import * as React from 'react';
 import IUser from '../interfaces/user.type';
-import { getCurrentUser } from '../service/api-service';
+import { getCurrentUser, logout } from '../service/api-service';
 import { useNavigation } from '@react-navigation/native';
 import { Home } from './home.routes';
 import { StackRoutes } from './stack.routes';
@@ -17,12 +17,14 @@ export const Routes = () => {
         // setCurrentUser(user);
     }
 
-    const logout = () => {
-        logout();
+    const signOut = async () => {
+        await logout();
         setCurrentUser(null);
     }
 
     React.useEffect(() => {
+        // signOut();
+
         // fetchUser();
     }, []);
 

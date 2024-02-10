@@ -11,4 +11,7 @@ export interface IProcedure {
     consequence: string;
     materials: string;
     help: string;
+    total_exec?: number;
+    data_chart?: number;
+    app_active?: boolean;
 }

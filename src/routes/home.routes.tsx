@@ -9,6 +9,8 @@ import { Schedule } from '../screens/schedule/Schedule';
 import { CustomHeader } from '../components/CustomHeader';
 import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 import { Execution } from '../screens/schedule/Execution';
+import { Chat } from '../screens/chat/Chat';
+import { Profile } from '../screens/profile/Profile';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,7 +38,7 @@ export const Home: React.FC = () => {
                     name="Programs"
                     component={Schedule}
                     options={{
-                        header: (props) => <CustomHeader {...props} user={currentUser} />,
+                        header: (props) => <CustomHeader />,
                         tabBarLabel: "",
                         tabBarIcon: () => (
                             <Icon
@@ -48,25 +50,10 @@ export const Home: React.FC = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="Execution"
-                    component={Execution}
-                    options={{
-                        header: (props) => <CustomHeader {...props} user={currentUser} />,
-                        tabBarLabel: "",
-                        tabBarIcon: () => (
-                            <Icon
-                                source="play-outline"
-                                size={24}
-                                color="#BCC1CD"
-                            />
-                        )
-                    }}
-                />
-                <Tab.Screen
                     name="Chat"
-                    component={Schedule}
+                    component={Chat}
                     options={{
-                        headerShown: false,
+                        header: (props) => <CustomHeader />,
                         tabBarLabel: "",
                         tabBarIcon: () => (
                             <Icon
@@ -80,9 +67,9 @@ export const Home: React.FC = () => {
                 />
                 <Tab.Screen
                     name="Settings"
-                    component={Schedule}
+                    component={Profile}
                     options={{
-                        headerShown: false,
+                        header: (props) => <CustomHeader />,
                         tabBarLabel: "",
                         tabBarIcon: () => (
                             <Icon
@@ -108,8 +95,9 @@ export const Home: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 40,
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center'
-    }
+    },
 });

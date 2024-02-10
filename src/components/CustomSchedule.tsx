@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { Alert, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Agenda, DateData, AgendaEntry, AgendaSchedule, LocaleConfig } from 'react-native-calendars';
 import { format } from 'date-fns';
 import { Avatar, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { getUrl } from '../service/api-service';
 
 LocaleConfig.locales['br'] = {
     monthNames: [
@@ -35,13 +36,15 @@ interface SchedulerProps {
 }
 
 export type RootStackParamList = {
-    Execution: {
+    Event: {
         id: string,
+        refresh: boolean,
     } | undefined;
 };
 
 export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const url = getUrl();
 
     const loadItems = (day: DateData) => {
         const itms = items || {};
@@ -51,24 +54,30 @@ export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
         return (
             <TouchableOpacity
                 style={styles.item}
-                onPress={() => navigation.navigate('Execution', { id: reservation.id })}
+                onPress={() => navigation.navigate('Event', { id: reservation.id, refresh: true })}
             >
                 <View>
                     <Text>{reservation.hour_start}:00 - {reservation.hour_end}:00</Text>
                 </View>
                 <View style={styles.lineSpacing} />
                 <View style={styles.rowContainer}>
-                    {/* <Avatar.Image 
-                            size={40}
-                            source={image}
-                            style={styles.avatar}
-                        /> */}
-                    <Avatar.Icon
-                        icon="account-circle"
-                        size={40}
-                        style={styles.avatar}
-                        color="#5c5c5c"
-                    />
+                    {
+                        reservation.avatar ? (
+                            <Avatar.Image
+                                size={40}
+                                source={{ uri: url + 'students/avatar/' + reservation.student }}
+                                style={styles.avatar}
+                            />
+
+                        ) : (
+                            <Avatar.Icon
+                                icon="account-circle"
+                                size={40}
+                                style={styles.avatar}
+                                color="#5c5c5c"
+                            />
+                        )
+                    }
                     <Text style={styles.nameText}>{reservation.name} </Text>
                 </View>
             </TouchableOpacity>

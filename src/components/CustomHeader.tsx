@@ -1,42 +1,76 @@
 import * as React from 'react';
-import { Avatar, Menu, Appbar, Text, Icon } from 'react-native-paper';
+import { Avatar, Menu, Appbar, Text, Icon, ActivityIndicator } from 'react-native-paper';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { getUserAvatarId } from '../service/api-service';
+import { getCurrentUser, getUserAvatarId, logout } from '../service/api-service';
 import followUp from './../../assets/img/follow_up.png'
+import IUser from '../interfaces/user.type';
 
-const loadAvatar = (id: any) => {
-    return getUserAvatarId(id);
-}
-
-export const CustomHeader = ({ user }: any) => {
+export const CustomHeader = () => {
+    const [currentUser, setCurrentUser] = React.useState<IUser | null>();
+    const [loadAvatar, setLoadAvatar] = React.useState('');
+    const [loading, setLoading] = React.useState(true);
     const [visible, setVisible] = React.useState(false);
     const openMenu = () => setVisible(true);
     const closeMenu = () => setVisible(false);
 
+    const fetchUser = async () => {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        if (user.image_path !== null) {
+            const avatar = await getUserAvatarId(user.id);
+            setLoadAvatar(avatar);
+        }
+        setLoading(false);
+    }
+
+    React.useEffect(() => {
+        fetchUser();
+    }, []);
+
     return (
         <Appbar.Header>
-            <View style={styles.header}>
-                <TouchableOpacity>
-                    <Image source={followUp} style={styles.logo} />
-                </TouchableOpacity>
-                <View style={styles.avatarContainer}>
-                    <TouchableOpacity onPress={openMenu}>
-                        <Menu
-                            visible={visible}
-                            onDismiss={closeMenu}
-                            anchor={
-                                <Avatar.Icon
-                                    icon="account-circle"
-                                    size={50}
-                                    source={loadAvatar(user.id)}
-                                />
-                            }
-                        >
-                            <Menu.Item onPress={() => { }} title="Sair" />
-                        </Menu>
-                    </TouchableOpacity>
+            {loading ? (
+                <View style={styles.loading}>
+                    <ActivityIndicator
+                        animating={true}
+                        color='#01878B' />
                 </View>
-            </View>
+
+            ) : (
+                <View style={styles.header}>
+                    <TouchableOpacity>
+                        <Image source={followUp} style={styles.logo} />
+                    </TouchableOpacity>
+                    <View style={styles.avatarContainer}>
+                        <TouchableOpacity onPress={openMenu}>
+                            <Menu
+                                visible={visible}
+                                onDismiss={closeMenu}
+                                anchor={
+                                    loadAvatar ? (
+                                        <Avatar.Image
+                                            size={50}
+                                            source={{ uri: loadAvatar }}
+                                        />
+                                    ) : (
+                                        <Avatar.Icon
+                                            icon="account-circle"
+                                            size={50}
+                                        />
+                                    )
+                                }
+                            >
+                                <Menu.Item onPress={() => { signOut }} title="Sair" />
+                            </Menu>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+
+
+
+
         </Appbar.Header>
     );
 }
@@ -64,6 +98,12 @@ const styles = StyleSheet.create({
         marginRight: 20,
         marginBottom: 0,
         flexDirection: 'row',
+        alignItems: 'center',
+    },
+    loading: {
+        flex: 1,
+        marginTop: 40,
+        justifyContent: 'center',
         alignItems: 'center',
     },
 });

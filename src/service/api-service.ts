@@ -6,7 +6,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // import fs from 'react-native-fs';
 
 // const API_URL = `${process.env.REACT_APP_API_URL}`;
-const API_URL = 'http://18.231.183.182:8080/';
+const API_URL = 'http://18.231.183.182/';
+
+export const getUrl = () => {
+    return API_URL;
+}
 
 export const getCurrentUser = async () => {
     const response = await axios.get(API_URL + "auth/me", { headers: await authHeader() });
@@ -32,8 +36,11 @@ export const logout = async () => {
 };
 
 export const getUserAvatarId = async (id: string) => {
-    const response = await axios.get(API_URL + 'users/' + id + '/avatar');
-    return response.data;
+    return API_URL + 'users/' + id + '/avatar';
+}
+
+export const getStudentAvatarId = (id: string) => {
+    return API_URL + 'students/avatar/' + id;
 }
 
 export const getEvents = async () => {
@@ -42,7 +49,7 @@ export const getEvents = async () => {
 }
 
 export const eventId = async (id: string) => {
-    const response = await axios.get(API_URL + 'follow-up/schedule/' + id, { headers: await authHeader() });
+    const response = await axios.get(API_URL + 'follow-up/mobile-schedule/' + id, { headers: await authHeader() });
     return response.data;
 }
 
@@ -58,5 +65,10 @@ export const eventProducedures = async (event_id: string, procedure_id: string) 
 
 export const execute = async (data: any) => {
     const response = await axios.post(API_URL + 'execution/', data, { headers: await authHeader() });
+    return response.data;
+}
+
+export const updateSchedule = async (id: string,data: any) => {
+    const response = await axios.put(API_URL + 'schedules/' + id + '/update', data, { headers: await authHeader() });
     return response.data;
 }
