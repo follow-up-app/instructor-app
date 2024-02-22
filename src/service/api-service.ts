@@ -1,12 +1,9 @@
 import axios from "axios";
 import moment from "moment";
-import { authHeader, authHeaderFormData } from "./auth-header";
+import { authHeader } from "./auth-header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import FileSystem from "expo-file-system"
-// import fs from 'react-native-fs';
 
-// const API_URL = `${process.env.REACT_APP_API_URL}`;
-const API_URL = 'http://18.231.183.182/';
+const API_URL = 'http://api.appfollowup.com/';
 
 export const getUrl = () => {
     return API_URL;
@@ -48,8 +45,8 @@ export const getEvents = async () => {
     return response.data;
 }
 
-export const eventId = async (id: string) => {
-    const response = await axios.get(API_URL + 'follow-up/mobile-schedule/' + id, { headers: await authHeader() });
+export const eventId = async (id: string, skill_schedule_id: string) => {
+    const response = await axios.get(API_URL + 'follow-up/mobile-schedule/' + id + '/' + skill_schedule_id, { headers: await authHeader() });
     return response.data;
 }
 
@@ -68,7 +65,22 @@ export const execute = async (data: any) => {
     return response.data;
 }
 
-export const updateSchedule = async (id: string,data: any) => {
+export const updateSchedule = async (id: string, data: any) => {
     const response = await axios.put(API_URL + 'schedules/' + id + '/update', data, { headers: await authHeader() });
+    return response.data;
+}
+
+export const updateArrivalStudent = async (id: string) => {
+    const response = await axios.get(API_URL + 'schedules/' + id + '/student-arrival', { headers: await authHeader() });
+    return response.data;
+}
+
+export const getListExecutables = async (schedule_id: string, procedure_id: string) => {
+    const response = await axios.get(API_URL + 'execution/' + schedule_id + '/' + procedure_id, { headers: await authHeader() });
+    return response.data;
+}
+
+export const updateExecution = async (id: string, data: any) => {
+    const response = await axios.put(API_URL + 'execution/' + id, data, { headers: await authHeader() });
     return response.data;
 }
