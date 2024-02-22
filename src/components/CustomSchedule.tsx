@@ -38,7 +38,7 @@ interface SchedulerProps {
 export type RootStackParamList = {
     Event: {
         id: string,
-        refresh: boolean,
+        skill_schedule_id: string,
     } | undefined;
 };
 
@@ -46,15 +46,11 @@ export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const url = getUrl();
 
-    const loadItems = (day: DateData) => {
-        const itms = items || {};
-    }
-
     const renderItem = (reservation: any) => {
         return (
             <TouchableOpacity
                 style={styles.item}
-                onPress={() => navigation.navigate('Event', { id: reservation.id, refresh: true })}
+                onPress={() => navigation.navigate('Event', { id: reservation.id, skill_schedule_id: reservation.skill_schedule_id })}
             >
                 <View>
                     <Text>{reservation.hour_start}:00 - {reservation.hour_end}:00</Text>
@@ -78,7 +74,9 @@ export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
                             />
                         )
                     }
-                    <Text style={styles.nameText}>{reservation.name} </Text>
+                    <Text style={styles.nameText}>{reservation.name}</Text>
+                    <Text style={styles.nameText}> | </Text>
+                    <Text style={styles.nameText}>{reservation.skill_name}</Text>
                 </View>
             </TouchableOpacity>
         );
@@ -91,7 +89,6 @@ export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
     return (
         <Agenda
             items={items}
-            loadItemsForMonth={loadItems}
             selected={format(new Date(), 'yyyy-MM-dd')}
             renderItem={renderItem}
             renderEmptyData={() => {

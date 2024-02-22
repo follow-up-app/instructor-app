@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IProcedure } from '../../interfaces/procedure.type';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Card, Caption,  Text, ProgressBar, Portal, Modal, Button, Icon } from 'react-native-paper';
+import { Card, Caption, Text, ProgressBar, Portal, Modal, Button, Icon } from 'react-native-paper';
 import { Formik } from 'formik';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { execute } from '../../service/api-service';
@@ -13,15 +13,23 @@ interface formData {
     execution: string;
 }
 
+type RootStackParamExecList = {
+    ListExecutions: {
+        schedule_id: string,
+        procedure_id: string,
+    } | undefined;
+};
+
 export type RootStackParamList = {
     Event: {
         id: string,
-        refresh: boolean,
+        skill_schedule_id: string,
     } | undefined;
 };
 
 export const Procedure: React.FC = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const execNavigation = useNavigation<StackNavigationProp<RootStackParamExecList>>();
 
     const route = useRoute();
     const { schedule_id } = route.params as { schedule_id: string };
@@ -29,6 +37,7 @@ export const Procedure: React.FC = () => {
     const { tryNumber } = route.params as { tryNumber: number };
     const { tries } = route.params as { tries: number };
     const { procedure } = route.params as { procedure: IProcedure };
+    const { skill_schedule_id } = route.params as { skill_schedule_id: string };
 
     const [visible, setVisible] = React.useState(false);
     const [running, setRunning] = React.useState(false);
@@ -46,7 +55,7 @@ export const Procedure: React.FC = () => {
         'VERBAL',
         'FÍSICA',
         'VISUAL',
-      ];
+    ];
 
     const payload = (data: formData, time: number) => {
         return {
@@ -82,11 +91,10 @@ export const Procedure: React.FC = () => {
 
     const handleSubmit = async (values: any) => {
         const data = payload(values, time)
-        console.log(data);
         try {
             const call = await execute(data);
             if (call.id) {
-                navigation.navigate('Event', { id: schedule_id, refresh: true })
+                navigation.navigate('Event', { id: schedule_id, skill_schedule_id: skill_schedule_id })
             }
 
         } catch (error) {
@@ -153,10 +161,7 @@ export const Procedure: React.FC = () => {
                                     </SelectDropdown>
                                 </View>
                                 <View style={styles.formContainer}>
-                                    <Text>Executado:</Text>
-                                </View>
-                                <View>
-                                    <Text>Após finalizar, selecione o tipo de ajuda e execução.</Text>
+                                    <Text>Após finalizar, selecione o tipo de ajuda.</Text>
                                 </View>
                                 <View style={styles.buttons}>
                                     <Button icon="content-save" mode="contained" onPress={handleSubmit} buttonColor='#06ca8f'>
@@ -180,29 +185,47 @@ export const Procedure: React.FC = () => {
                         <Caption style={styles.caption}>{'Procedimento'}</Caption>
                         <Text>{procedure.name}</Text>
                     </View>
-                    <View style={styles.userInfo}>
+                    <View style={styles.goalInfo}>
                         <Caption style={styles.caption}>{'Meta'}</Caption>
                         <Text>{procedure.goal} %</Text>
-
                     </View>
+                    {
+                        tryNumber > 1 && (
+                            <View style={styles.listInfo}>
+                                <TouchableOpacity onPress={() => execNavigation.navigate('ListExecutions', { schedule_id: schedule_id, procedure_id: procedure_id })}>
+                                    <Icon
+                                        source="format-list-bulleted"
+                                        size={30}
+                                        color="#717180" />
+                                </TouchableOpacity>
+                            </View>
+                        )
+                    }
                 </Card.Content>
             </Card>
-
             <Card style={styles.card}>
                 <Card.Content style={styles.cardContent}>
                     <View style={styles.userInfo}>
                         <ProgressBar progress={procedure.data_chart} color="#068798" />
-                        <Caption style={styles.caption}>{`Tentativa:` + tryNumber + '/' + tries}</Caption>
+                        {
+                            tryNumber > tries ? (
+                                <Caption style={styles.caption}>Completo</Caption>
+                            ) : (
+                                <Caption style={styles.caption}>{`Tentativa:` + tryNumber + '/' + tries}</Caption>
+                            )
+                        }
                     </View>
-                    <Button
-                        icon="play-outline"
-                        mode="elevated"
-                        textColor="#D8727D"
-                        onPress={showModal}
-                        buttonColor="white"
-                    >
-                        Iniciar
-                    </Button>
+                    {tries >= tryNumber && (
+                        <Button
+                            icon="play-outline"
+                            mode="elevated"
+                            textColor="#D8727D"
+                            onPress={showModal}
+                            buttonColor="white"
+                        >
+                            Iniciar
+                        </Button>
+                    )}
                 </Card.Content>
             </Card>
             <ScrollView>
@@ -264,6 +287,16 @@ const styles = StyleSheet.create({
     },
     userInfo: {
         marginLeft: 10,
+        marginRight: 10,
+    },
+    goalInfo: {
+        justifyContent: 'flex-end',
+        marginLeft: 80,
+        marginRight: 10,
+    },
+    listInfo: {
+        marginLeft: 10,
+        marginRight: 10,
     },
     cardDetails: {
         backgroundColor: '#F2F2F2',
@@ -317,9 +350,9 @@ const styles = StyleSheet.create({
         borderColor: '#444',
     },
     dropdown1BtnTxtStyle: { color: '#444', textAlign: 'left', fontSize: 16 },
-    dropdown1DropdownStyle: {backgroundColor: '#EFEFEF'},
-    dropdown1RowStyle: {backgroundColor: '#EFEFEF', borderBottomColor: '#C5C5C5'},
-    dropdown1RowTxtStyle: {color: '#444', textAlign: 'left'},
+    dropdown1DropdownStyle: { backgroundColor: '#EFEFEF' },
+    dropdown1RowStyle: { backgroundColor: '#EFEFEF', borderBottomColor: '#C5C5C5' },
+    dropdown1RowTxtStyle: { color: '#444', textAlign: 'left' },
 });
 
 const formatTime = (seconds: number): string => {

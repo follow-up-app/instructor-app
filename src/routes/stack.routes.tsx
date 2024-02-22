@@ -7,6 +7,7 @@ import { Procedure } from '../screens/schedule/Procedure';
 import { CustomHeader } from '../components/CustomHeader';
 import IUser from '../interfaces/user.type';
 import { getCurrentUser } from '../service/api-service';
+import { ListExecutions } from '../screens/schedule/ListExecutions';
 
 const Stack = createNativeStackNavigator();
 
@@ -56,6 +57,14 @@ export const StackRoutes = () => {
         options={{
           headerShown: true,
           headerTitle: 'Executar procedimento'
+        }}
+      />
+      <Stack.Screen
+        name="ListExecutions"
+        component={ListExecutions}
+        options={{
+          headerShown: true,
+          headerTitle: 'Lista de  execuções'
         }}
       />
     </Stack.Navigator>

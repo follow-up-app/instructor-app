@@ -31,7 +31,6 @@ export const SignUp = () => {
             const { username, password } = formValue;
             try {
                 const call = await login(username, password);
-                console.log(call);
                 if (call.access_token) {
                     navigation.navigate('Home');
                 }

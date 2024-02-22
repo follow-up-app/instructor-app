@@ -2,7 +2,7 @@ import * as React from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Card, Avatar, Text, Chip, ActivityIndicator, ProgressBar, Icon, Button } from 'react-native-paper';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { eventId,  getUrl, updateSchedule } from '../../service/api-service';
+import { eventId, getUrl, updateArrivalStudent, updateSchedule } from '../../service/api-service';
 import { List } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -18,7 +18,6 @@ type RootStackParamList = {
         procedure: IProcedure
     } | undefined;
 };
-
 
 type RootHomeParamList = {
     Home: {} | undefined;
@@ -61,10 +60,12 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
     const homeNavigation = useNavigation<StackNavigationProp<RootHomeParamList>>();
     const [event, setEvent] = React.useState<any>('');
     const [procedures, setProcedures] = React.useState<any>([]);
+    const [outhers, setOuthers] = React.useState<any>([]);
     const [loading, setLoading] = React.useState(true);
 
     const route = useRoute();
     const { id } = route.params as { id: string };
+    const { skill_schedule_id } = route.params as { skill_schedule_id: string };
 
     const url = getUrl();
 
@@ -86,10 +87,38 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
     }, []);
 
     const getEventId = async () => {
-        const evnt = await eventId(id);
+        const evnt = await eventId(id, skill_schedule_id);
         setEvent(evnt);
         setProcedures(evnt.skill.procedures);
+        setOuthers(evnt.outhers);
         setLoading(false);
+    }
+
+    const arrivalStudent = async () => {
+        try {
+            const call = await updateArrivalStudent(id);
+            if (call.id) {
+                homeNavigation.navigate('Home');
+            }
+        } catch (error) {
+            console.error('Erro no envio do dados:', error);
+            Alert.alert('Erro', 'Falha ao salvar. Por favor, tente novamente.');
+        }
+    }
+
+    const didNotAttend = async () => {
+        const data = {
+            status: 'NÃO COMPARECEU'
+        }
+        try {
+            const call = await updateSchedule(id, data);
+            if (call.id) {
+                homeNavigation.navigate('Home');
+            }
+        } catch (error) {
+            console.error('Erro no envio do dados:', error);
+            Alert.alert('Erro', 'Falha ao salvar. Por favor, tente novamente.');
+        }
     }
 
     const finish = async () => {
@@ -108,6 +137,7 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
     }
 
     const isAllItemsInactive = procedures.every((item: any) => !item.app_active)
+    const isOuthersItemsInactive = outhers.every((item: any) => !item.app_active)
 
     const renderItem = ({ item }: { item: any }) => (
         item.app_active === true ? (
@@ -128,7 +158,7 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
                     {item.name}
                 </Text>}
                 description={props => <ProgressBar  {...props} progress={item.data_chart} color="#068798" />}
-                onPress={() => Alert.alert('Atenção', 'Procedimento finalizando com todas as tentativas')}
+                onPress={() => navigation.navigate('Procedure', { schedule_id: id, procedure_id: item.id, tryNumber: item.total_exec + 1, tries: item.tries, process: item.status, procedure: item })}
                 left={props => <List.Icon {...props} color="#D8727D" icon="play-outline" />}
                 right={props => <Icon {...props} source="check" size={30} color='#06ca8f' />}
             />
@@ -182,19 +212,30 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
                             </View>
                         </Card.Content>
                     </Card>
-                    <View style={styles.info}>
-                        <Chip icon="information">Sincronize os dados antes de qualquer execução!</Chip>
-                    </View>
-                    <View style={styles.buttonContainer}>
-                        <Button
-                            mode="elevated"
-                            icon="sync"
-                            buttonColor="white"
-                            textColor="#068798"
-                            onPress={reload}>
-                            Sincronizar
-                        </Button>
-                    </View>
+                    {event.status === 'AGENDADO' && (
+                        <><View style={styles.info}>
+                            <Chip icon="information">Marcar chegada do cliente</Chip>
+                        </View><View style={styles.buttonContainer}>
+                                <Button
+                                    mode="elevated"
+                                    icon="cancel"
+                                    buttonColor="white"
+                                    textColor="#D8727D"
+                                    onPress={didNotAttend}>
+                                    Não compareceu
+                                </Button>
+                                {event.student_arrival === null && (
+                                    <Button
+                                        mode="elevated"
+                                        icon="calendar-check-outline"
+                                        buttonColor="white"
+                                        textColor="#717180"
+                                        onPress={arrivalStudent}>
+                                        Chegada
+                                    </Button>
+                                )}
+                            </View></>
+                    )}
                     <View style={styles.info}>
                         <Chip icon="information">Selecione o procedimento</Chip>
                     </View>
@@ -209,7 +250,7 @@ const Container: React.FC<ReloadableComponentProps> = ({ reload }) => {
                         </View>
                     </View>
                     <View>
-                        {isAllItemsInactive && (
+                        {isAllItemsInactive && isOuthersItemsInactive && (
                             <Button
                                 mode="elevated"
                                 icon="check-bold"
@@ -298,8 +339,12 @@ const styles = StyleSheet.create({
         color: '#4D4C59'
     },
     buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'flex-end',
+        padding: 10,
         marginRight: 10,
+        marginLeft: 10,
         marginTop: 5,
         marginBottom: 5,
     },
@@ -308,5 +353,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
         justifyContent: 'center',
         alignItems: 'center',
+        textAlign: 'justify',
+        display: 'none'
     },
 });
