@@ -99,11 +99,10 @@ export const CustomSchedule: React.FC<SchedulerProps> = ({ items }) => {
             }}
             rowHasChanged={rowHasChanged}
             showClosingKnob={true}
+            showOnlySelectedDayItems={true}
             theme={styles.scheduleTheme}
         />
     );
-
-
 }
 
 const styles = StyleSheet.create({
