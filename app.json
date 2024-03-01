@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "expo-follow-up",
-    "slug": "expo-follow-up",
+    "name": "follow-up-instructor",
+    "slug": "follow-up-instructor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/vector.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.expofollowup"
@@ -30,7 +30,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "623bebc4-c389-4589-ae63-c53337613694"
+        "projectId": "030724b2-596f-4a7b-aee6-3b3ebdcd23e4"
       }
     },
     "plugins": [
@@ -42,6 +42,7 @@
           }
         }
       ]
-    ]
+    ],
+    "owner": "rodrigo.mrosa123645"
   }
 }

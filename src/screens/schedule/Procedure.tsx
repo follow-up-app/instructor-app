@@ -55,6 +55,7 @@ export const Procedure: React.FC = () => {
         'VERBAL',
         'FÍSICA',
         'VISUAL',
+        'NÃO EXECUTADO',
     ];
 
     const payload = (data: formData, time: number) => {

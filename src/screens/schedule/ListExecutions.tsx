@@ -72,6 +72,7 @@ export const ListExecutions: React.FC = () => {
         'VERBAL',
         'FÍSICA',
         'VISUAL',
+        'NÃO EXECUTADO',
     ];
 
     React.useEffect(() => {
