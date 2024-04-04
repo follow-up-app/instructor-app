@@ -84,3 +84,8 @@ export const updateExecution = async (id: string, data: any) => {
     const response = await axios.put(API_URL + 'execution/' + id, data, { headers: await authHeader() });
     return response.data;
 }
+
+export const updatePassword = async (data: any) => {
+    const response = await axios.put(API_URL + 'profile/update-password/', data, { headers: await authHeader() });
+    return response.data;
+}
